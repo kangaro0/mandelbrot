@@ -1,5 +1,6 @@
 import { TaskRequest, TaskAnswer } from "../interfaces";
 
+/*
 onmessage = function( event ){
     postMessage( computeRow( event.data as TaskRequest ) );
 }
@@ -49,3 +50,4 @@ function computeRow( task: TaskRequest ): TaskAnswer{
 	}
 	return answer;
 }
+*/
