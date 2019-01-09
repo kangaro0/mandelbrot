@@ -1,0 +1,15 @@
+{
+  "name": "mandelbrot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Johannes Herbert",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/webrtc": "0.0.24",
+    "webpack": "^4.28.1"
+  }
+}
