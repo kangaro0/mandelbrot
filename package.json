@@ -10,6 +10,9 @@
   "license": "MIT",
   "devDependencies": {
     "@types/webrtc": "0.0.24",
-    "webpack": "^4.28.1"
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.2.2",
+    "webpack": "^4.28.1",
+    "webpack-cli": "^3.2.1"
   }
 }
