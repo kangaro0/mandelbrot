@@ -3,29 +3,6 @@ import { Message } from './interfaces';
 import { MessageType } from './enums';
 
 /*
-    RTC Connection
-*/
-let connectionConfig: RTCPeerConnectionConfig = {
-    'iceServers': [
-        { 'urls': 'stun:stun.stunprotocol.org:3478' },
-        { 'urls': 'stun:stun.l.google.com:19302' }
-    ]
-}
-
-let rtcConnection = new RTCPeerConnection( connectionConfig );
-
-// Events
-rtcConnection.onicecandidate = ( rtc: RTCPeerConnection, event: RTCPeerConnectionIceEvent ) => {
-    let anwser = {
-        from: ids.client,
-        to: ids.server,
-        content: event.candidate
-}
-rtcConnection.ondatachannel = () => {
-    
-}
-
-/*
     WebSocket Connection
 */
 interface WebSocketMessage { 
@@ -34,16 +11,17 @@ interface WebSocketMessage {
     target: WebSocket;
 };
 let webSocket = new WebSocket( 'ws://localhost:9030' );
+// For Signaling Server
 let ids = {
     client: '',
     server: ''
 };
 
-webSocket.onopen( ( event: { target: WebSocket } ) => {
+webSocket.onopen = ( event: { target: WebSocket } ) => {
 
     let client = event.target;
 
-    webSocket.onmessage( ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
+    webSocket.onmessage = ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
         let message = JSON.parse( ev.data ) as Message;
 
         // Handle connection
@@ -79,7 +57,7 @@ webSocket.onopen( ( event: { target: WebSocket } ) => {
                 });
             }
         }
-    });
+    };
 
     let message: Message = {
         from: '',
@@ -88,4 +66,32 @@ webSocket.onopen( ( event: { target: WebSocket } ) => {
         content: 'server'
     }
     webSocket.send( JSON.stringify( message ) );
-});
+};
+
+
+
+/*
+    RTC Connection
+*/
+let connectionConfig: RTCPeerConnectionConfig = {
+    'iceServers': [
+        { 'urls': 'stun:stun.stunprotocol.org:3478' },
+        { 'urls': 'stun:stun.l.google.com:19302' }
+    ]
+}
+
+let rtcConnection = new RTCPeerConnection( connectionConfig );
+
+// Events
+rtcConnection.onicecandidate = ( rtc: RTCPeerConnection, event: RTCPeerConnectionIceEvent ) => {
+    let anwser = {
+        from: ids.client,
+        to: ids.server,
+        type: MessageType.MESSAGE,
+        content: event.candidate
+    };
+    webSocket.send( JSON.stringify( anwser ) );
+}
+rtcConnection.ondatachannel = () => {
+    
+}
