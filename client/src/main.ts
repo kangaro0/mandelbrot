@@ -32,13 +32,13 @@ interface WebSocketMessage {
 };
 let webSocket = new WebSocket( 'ws://localhost:9030' );
 
-webSocket.onopen( ( event: { target: WebSocket } ) => {
+webSocket.onopen = ( event: { target: WebSocket } ) => {
 
     let ws = event.target;
     let id = '';
 
-    webSocket.onmessage( ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
-        let message = JSON.parse( ev.data ) as Message;
+    webSocket.onmessage = ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
+        let message = JSON.parse( ev.data as string ) as Message;
 
         // Handle connection
         if( message.type === MessageType.CONNECT ){
@@ -73,7 +73,7 @@ webSocket.onopen( ( event: { target: WebSocket } ) => {
 
             }
         }
-    });
+    };
 
     let message: Message = {
         from: '',
@@ -82,4 +82,4 @@ webSocket.onopen( ( event: { target: WebSocket } ) => {
         content: 'client'
     }
     webSocket.send( JSON.stringify( message ) );
-});
+};

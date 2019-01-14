@@ -22,7 +22,7 @@ webSocket.onopen = ( event: { target: WebSocket } ) => {
     let client = event.target;
 
     webSocket.onmessage = ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
-        let message = JSON.parse( ev.data ) as Message;
+        let message = JSON.parse( ev.data as string ) as Message;
 
         // Handle connection
         if( message.type === MessageType.CONNECT ){
@@ -83,7 +83,7 @@ let connectionConfig: RTCPeerConnectionConfig = {
 let rtcConnection = new RTCPeerConnection( connectionConfig );
 
 // Events
-rtcConnection.onicecandidate = ( rtc: RTCPeerConnection, event: RTCPeerConnectionIceEvent ) => {
+rtcConnection.onicecandidate = ( event: RTCPeerConnectionIceEvent ) => {
     let anwser = {
         from: ids.client,
         to: ids.server,
@@ -91,7 +91,7 @@ rtcConnection.onicecandidate = ( rtc: RTCPeerConnection, event: RTCPeerConnectio
         content: event.candidate
     };
     webSocket.send( JSON.stringify( anwser ) );
-}
-rtcConnection.ondatachannel = () => {
+};
+rtcConnection.ondatachannel = ( event: RTCDataChannelEvent ) => {
     
 }
