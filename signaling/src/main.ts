@@ -3,6 +3,7 @@ import * as WebSocket from 'ws';
 import { Message, Peer } from './interfaces';
 import { MessageType } from './enums';
 import { List } from './list';
+import { listenerCount } from 'cluster';
 
 let sockets = new List<Peer>(1);
 let server = new WebSocket.Server({ port: 9030 });
@@ -38,8 +39,16 @@ server.on( 'connection', ( ws: WebSocket ) => {
             if( server == null )
                 return;
 
+            // All message from server should go to specific client
             if( server.id.localeCompare( id ) === 0 ){
                 let peer = sockets.getById( message.to );
+                if( !peer )
+                    return;
+                peer.ws.send( message );
+            } 
+            // Other messages should go to server
+            else {
+                let peer = sockets.get( 0 );
                 peer.ws.send( message );
             }
         }
@@ -52,6 +61,11 @@ server.on( 'connection', ( ws: WebSocket ) => {
                 content: "Method not found." }) 
             );
         }
+    });
+
+    ws.on( 'close', ( code: number, reason: string ) => {
+        // Remove peer from peerlist
+        sockets.removeById( id );
     });
 });
 

@@ -1,3 +1,4 @@
+import * as WebSocket from 'ws';
 import { MessageType } from "./enums";
 
 export interface Message {

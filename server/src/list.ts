@@ -1,11 +1,11 @@
-import { Peer } from "./interfaces";
+import { Peer } from './interfaces'
 
-export class List<T extends Peer > {
+export class List<T extends Peer> {
 
     private arr: Array<T>;
 
     constructor( l: number ){
-        this.arr = new Array<T>( l );
+        this.arr = new Array<T>(l);
     }
 
     public get( i: number ){
@@ -20,15 +20,15 @@ export class List<T extends Peer > {
         return null;
     }
 
-    public set( i: number, v: T ){
-        this.arr[ i ] = v;
+    public push( p: T ){
+        this.arr.push( p );
     }
 
-    public push( v: T ){
-        this.arr.push( v );
+    public set( i: number, p: T ){
+        this.arr[ i ] = p;
     }
 
-    public removeById( id:string ){
+    public removeById( id: string ){
         let l = this.arr.length;
         for( let i = 0 ; i < l ; i++ )
             if( this.arr[ i ].id.localeCompare( id ) === 0 )

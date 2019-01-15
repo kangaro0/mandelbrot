@@ -1,97 +1,91 @@
-import WebSocket = require( 'ws' );
-import { Message } from './interfaces';
+
+import * as WebSocket from 'ws';
+import { Message, Peer, DisplayInfo, WorkerResult, TaskInfo } from './interfaces';
 import { MessageType } from './enums';
+import { List } from './list';
 
 /*
-    WebSocket Connection
+    State
 */
-interface WebSocketMessage { 
-    data?: WebSocket.Data;
-    type?: string;
-    target: WebSocket;
+let currentRow = 0;
+let canvasConfiguration = {
+    width: 0,
+    height: 0
 };
-let webSocket = new WebSocket( 'ws://localhost:9030' );
-// For Signaling Server
-let ids = {
-    client: '',
-    server: ''
+let mandelConfiguration = {
+    // x-Achse
+    r_max: 1.5,
+    r_min: -2.5,
+    // y-Achse
+    i_max: 1.5,
+    i_min: -1.5,
+    // Maximum Iterationen
+    max_iter: 1024,
+    // Ueberpruefe ob Mandelbrot
+    escape: 100
 };
 
-webSocket.onopen = ( event: { target: WebSocket } ) => {
+/*
+    WebSocket-Server
+*/
+let server = new WebSocket.Server({ port: 9030 });
+let peers = new List<Peer>(0);
 
-    let client = event.target;
+server.on( 'connection', ( ws: WebSocket ) => {
 
-    webSocket.onmessage = ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
-        let message = JSON.parse( ev.data as string ) as Message;
+    let id = guid();
 
-        // Handle connection
-        if( message.type === MessageType.CONNECT ){
-            ids.client = message.to;
+    // Handle incoming message
+    ws.on( 'message', ( data: string ) => {
+        let message = JSON.parse( data ) as Message;
+        
+        // Handle configuration message
+        if( message.type === MessageType.CONFIGURATION ){
+            let content = message.content as DisplayInfo;
+            canvasConfiguration = content;
         }
-        // Handle message
-        else if( message.type === MessageType.MESSAGE ){
-            if( ids.server.localeCompare( '' ) === 0 )
-                ids.server = message.from;
+        // Handle row message
+        else if( message.type === MessageType.ROW ){
+            let content = message.content as WorkerResult;
+            // Send row to client
+            peers.get( 0 ).ws.send( content );
 
-            // RTCSessionDescription
-            if( message.content.sdp ){
-                rtcConnection.setRemoteDescription( new RTCSessionDescription( message.content as RTCSessionDescriptionInit ) )
-                .then( () => {
-                    return rtcConnection.createAnswer();
-                })
-                .then( ( v: RTCSessionDescriptionInit ) => {
-                    // Prepare Anwser
-                    let answer = {
-                        from: ids.server,
-                        to: message.from,
-                        type: MessageType.MESSAGE,
-                        content: v
-                    };
-                    webSocket.send( JSON.stringify( answer ) );
-                });
-            // RTCIceCandidate
-            } else if( message.content.candidate ){
-                rtcConnection.addIceCandidate( new RTCIceCandidate( message.content.candidate ) )
-                .then( () => {
-                    return rtcConnection
-                });
+            // Check if still work to do
+            if( currentRow < canvasConfiguration.height ){
+                // Create next task for worker
+                let task = createTaskInfo();
+                ws.send( task );
             }
         }
-    };
+    });
 
-    let message: Message = {
-        from: '',
-        to: '',
-        type: MessageType.CONNECT,
-        content: 'server'
+    // Push current client to peers
+    // Hack: Display client has to connect first!
+    peers.push({
+        id: id,
+        ws: ws
+    });
+});
+
+function createTaskInfo(): TaskInfo {
+    // Create task
+    let task = {
+        row: currentRow,
+        width: canvasConfiguration.width,
+        config: mandelConfiguration
     }
-    webSocket.send( JSON.stringify( message ) );
-};
-
-
-
-/*
-    RTC Connection
-*/
-let connectionConfig: RTCPeerConnectionConfig = {
-    'iceServers': [
-        { 'urls': 'stun:stun.stunprotocol.org:3478' },
-        { 'urls': 'stun:stun.l.google.com:19302' }
-    ]
+    // Increment row
+    currentRow++;
+    return task;
 }
 
-let rtcConnection = new RTCPeerConnection( connectionConfig );
-
-// Events
-rtcConnection.onicecandidate = ( event: RTCPeerConnectionIceEvent ) => {
-    let anwser = {
-        from: ids.client,
-        to: ids.server,
-        type: MessageType.MESSAGE,
-        content: event.candidate
-    };
-    webSocket.send( JSON.stringify( anwser ) );
-};
-rtcConnection.ondatachannel = ( event: RTCDataChannelEvent ) => {
-    
+/* Helper Functions */
+// https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+function guid() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
