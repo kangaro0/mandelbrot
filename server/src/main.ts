@@ -15,14 +15,14 @@ let canvas = {
 let mandel = {
     // x-Achse
     r_max: 1.5,
-    r_min: -1.5,
+    r_min: -2.5,
     // y-Achse
     i_max: 1.5,
     i_min: -1.5,
     // Maximum Iterationen
-    max_iter: 1024,
+    max_iter: 4096,
     // Ueberpruefe ob Mandelbrot
-    escape: 100
+    escape: 10
 };
 
 /*
@@ -119,15 +119,15 @@ function setupMandelbrot(){
 }
 
 function handleRowsDone(){
-    let x = canvas.width *  0.5;
-    let y = canvas.height * 0.5;
+    let x = canvas.width *  0.51;
+    let y = canvas.height * 0.52;
 
     let w = mandel.r_max - mandel.r_min;
     let h = mandel.i_min - mandel.i_max;
     let cr = mandel.r_min + (( w * x ) / canvas.width );
     let ci = mandel.i_max + (( h * y ) / canvas.height );
 
-    let zoom = 2;
+    let zoom = 2.1;
 
     mandel.r_min = cr - w / zoom;
     mandel.r_max = cr + w / zoom;

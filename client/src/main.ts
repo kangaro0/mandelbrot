@@ -33,6 +33,19 @@ window.onload = () => {
     socket.send( JSON.stringify( message ) );
 }
 
+/*
+window.onresize = () => {
+    let message = {
+        type: MessageType.CONFIGURATION,
+        content: {
+            width: canvas.clientWidth,
+            height: canvas.clientHeight
+        }
+    };
+    socket.send( JSON.stringify( message ) );
+}
+*/
+
 function makePalette(){
     function wrap( x: number ){
         x = ((x + 256) & 0x1ff) - 256;
@@ -40,7 +53,7 @@ function makePalette(){
             x = -x;
         return x;
     }
-    for( let i = 0 ; i <= 1024 ; i++ )
+    for( let i = 0 ; i <= 4096 ; i++ )
         palette.push([wrap(7*i),wrap(5*i),wrap(11*i)]);
 }
 

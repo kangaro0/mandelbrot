@@ -17,11 +17,11 @@ var canvas = {
 };
 var mandel = {
     r_max: 1.5,
-    r_min: -1.5,
+    r_min: -2.5,
     i_max: 1.5,
     i_min: -1.5,
-    max_iter: 1024,
-    escape: 100
+    max_iter: 4096,
+    escape: 10
 };
 var server = new WebSocket.Server({ port: 9030 });
 var peers = new list_1.List(0);
@@ -53,7 +53,7 @@ server.on('connection', function (ws) {
         }
     });
     ws.on('close', function (code, reason) {
-        //peers.removeById(id);
+        peers.removeById(id);
         console.log('Peer disconnected.');
     });
     peers.push({
@@ -86,13 +86,13 @@ function setupMandelbrot() {
     mandel.r_max = r_mid + width / 2;
 }
 function handleRowsDone() {
-    var x = canvas.width * 0.5;
-    var y = canvas.height * 0.5;
+    var x = canvas.width * 0.51;
+    var y = canvas.height * 0.53;
     var w = mandel.r_max - mandel.r_min;
     var h = mandel.i_min - mandel.i_max;
     var cr = mandel.r_min + ((w * x) / canvas.width);
     var ci = mandel.i_max + ((h * y) / canvas.height);
-    var zoom = 2;
+    var zoom = 2.1;
     mandel.r_min = cr - w / zoom;
     mandel.r_max = cr + w / zoom;
     mandel.i_max = ci - h / zoom;
