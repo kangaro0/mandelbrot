@@ -13,12 +13,25 @@ let then = Date.now();
 */
 let canvas: HTMLCanvasElement;
 let context: CanvasRenderingContext2D;
+let button: HTMLButtonElement;
 let palette: Array<Array<number>> = [];
 
 // Handle page load
 window.onload = () => {
+    // setup canvas
     canvas = document.getElementById( 'canvas' ) as HTMLCanvasElement;
     context = canvas.getContext( '2d' ) as CanvasRenderingContext2D;
+    
+    // setup reset button
+    button = document.getElementById( 'reset' ) as HTMLButtonElement;
+    button.onclick = () => {
+        let message = {
+            type: MessageType.RESET
+        };
+        socket.send( JSON.stringify( message ) );
+
+        generation = 0;
+    }
 
     makePalette();
 

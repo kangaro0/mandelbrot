@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var WebSocket = __importStar(require("ws"));
 var enums_1 = require("./enums");
 var list_1 = require("./list");
+var generation = 0;
 var currentRow = 0;
 var canvas = {
     width: 0,
@@ -35,6 +36,10 @@ server.on('connection', function (ws) {
             canvas = content;
             setupMandelbrot();
         }
+        else if (message.type === enums_1.MessageType.RESET) {
+            console.log('Client: Reset received.');
+            setupMandelbrot();
+        }
         else if (message.type === enums_1.MessageType.ROW) {
             var result = message.content;
             var forward = {
@@ -43,6 +48,7 @@ server.on('connection', function (ws) {
             };
             peers.get(0).ws.send(JSON.stringify(forward));
             if (currentRow >= canvas.height) {
+                generation++;
                 handleRowsDone();
             }
             var response = {
@@ -53,7 +59,6 @@ server.on('connection', function (ws) {
         }
     });
     ws.on('close', function (code, reason) {
-        peers.removeById(id);
         console.log('Peer disconnected.');
     });
     peers.push({
@@ -79,6 +84,15 @@ function createTaskInfo() {
     return task;
 }
 function setupMandelbrot() {
+    generation = 0;
+    mandel = {
+        r_max: 1.5,
+        r_min: -2.5,
+        i_max: 1.5,
+        i_min: -1.5,
+        max_iter: 64,
+        escape: 10
+    };
     var aspect = canvas.width / canvas.height;
     var width = (mandel.i_max - mandel.i_min) * aspect;
     var r_mid = (mandel.r_max + mandel.r_min) / 2;
@@ -86,8 +100,12 @@ function setupMandelbrot() {
     mandel.r_max = r_mid + width / 2;
 }
 function handleRowsDone() {
-    var x = canvas.width * 0.51;
-    var y = canvas.height * 0.53;
+    var x = canvas.width * 0.5151654;
+    var y = canvas.height * 0.5208538;
+    if (generation > 14) {
+        x = canvas.width * 0.5;
+        y = canvas.height * 0.5;
+    }
     var w = mandel.r_max - mandel.r_min;
     var h = mandel.i_min - mandel.i_max;
     var cr = mandel.r_min + ((w * x) / canvas.width);

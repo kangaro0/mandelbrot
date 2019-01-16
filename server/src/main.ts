@@ -7,6 +7,7 @@ import { List } from './list';
 /*
     State
 */
+let generation = 0;
 let currentRow = 0;
 let canvas = {
     width: 0,
@@ -48,6 +49,10 @@ server.on( 'connection', ( ws: WebSocket ) => {
 
             setupMandelbrot();
         }
+        else if( message.type === MessageType.RESET ){
+            console.log( 'Client: Reset received.' );
+            setupMandelbrot();
+        }
         // Handle row message
         else if( message.type === MessageType.ROW ){
             //.log( 'Received row from worker. Sent to client.' );
@@ -62,6 +67,7 @@ server.on( 'connection', ( ws: WebSocket ) => {
 
             // Check if still work to do
             if( currentRow >= canvas.height ){
+                generation++;
                 handleRowsDone();
                 //console.log( 'Finished image, starting new.' );
             }
@@ -76,7 +82,7 @@ server.on( 'connection', ( ws: WebSocket ) => {
     });
 
     ws.on( 'close', ( code: number, reason: string ) => {
-        peers.removeById( id );
+        //peers.removeById( id );
         console.log( 'Peer disconnected.' );
     });
 
@@ -111,6 +117,20 @@ function createTaskInfo(): TaskInfo {
 }
 
 function setupMandelbrot(){
+    generation = 0;
+    mandel = {
+        // x-Achse
+        r_max: 1.5,
+        r_min: -2.5,
+        // y-Achse
+        i_max: 1.5,
+        i_min: -1.5,
+        // Maximum Iterationen
+        max_iter: 64,
+        // Ueberpruefe ob Mandelbrot
+        escape: 10
+    };
+
     let aspect = canvas.width / canvas.height;
     let width = ( mandel.i_max - mandel.i_min ) * aspect;
     let r_mid = ( mandel.r_max + mandel.r_min ) / 2;
@@ -119,8 +139,12 @@ function setupMandelbrot(){
 }
 
 function handleRowsDone(){
-    let x = canvas.width *  0.51;
-    let y = canvas.height * 0.52;
+    let x = canvas.width *  0.5151654;
+    let y = canvas.height * 0.5208538;
+    if( generation > 14 ){
+        x = canvas.width * 0.5;
+        y = canvas.height * 0.5;
+    }
 
     let w = mandel.r_max - mandel.r_min;
     let h = mandel.i_min - mandel.i_max;
