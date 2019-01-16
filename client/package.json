@@ -9,10 +9,12 @@
   "author": "Johannes Herbert",
   "license": "MIT",
   "dependencies": {
+    "websocket": "^1.0.28",
     "ws": "^6.1.2"
   },
   "devDependencies": {
     "@types/webrtc": "0.0.24",
+    "@types/websocket": "0.0.40",
     "@types/ws": "^6.0.1",
     "ts-loader": "^5.3.3",
     "typescript": "^3.2.2",

@@ -29,9 +29,14 @@ export class List<T extends Peer> {
     }
 
     public removeById( id: string ){
+        console.log( 'removing' );
         let l = this.arr.length;
         for( let i = 0 ; i < l ; i++ )
             if( this.arr[ i ].id.localeCompare( id ) === 0 )
                 this.arr.splice( i, 1 );
+    }
+
+    public length(){
+        return this.arr.length;
     }
 }

@@ -1,11 +1,5 @@
 
-import * as WebSocket from 'ws';
 import { MessageType } from './enums';
-
-export interface Peer {
-    id: string;
-    ws: WebSocket;
-}
 
 export interface Message {
     type: MessageType;

@@ -1,80 +1,95 @@
-import WebSocket = require( 'ws' );
-import { Message } from './interfaces';
-import { MessageType } from './enums';
+import { w3cwebsocket } from "websocket";
+import { MessageType } from "./enums";
+import { Message, WorkerResult } from "./interfaces";
 
 /*
-    WebSocket Connection
+    State
 */
-let webSocket = new WebSocket( 'ws://localhost:9030' );
+let generation = 0;
+let then = Date.now();
 
-webSocket.onopen = ( event: { target: WebSocket } ) => {
+/*
+    Page
+*/
+let canvas: HTMLCanvasElement;
+let context: CanvasRenderingContext2D;
+let palette: Array<Array<number>> = [];
 
-    let ws = event.target;
-    let id = '';
+// Handle page load
+window.onload = () => {
+    canvas = document.getElementById( 'canvas' ) as HTMLCanvasElement;
+    context = canvas.getContext( '2d' ) as CanvasRenderingContext2D;
 
-    webSocket.onmessage = ( ev: { data: WebSocket.Data, type: string, target: WebSocket } ) => {
-        let message = JSON.parse( ev.data as string ) as Message;
+    makePalette();
 
-        // Handle connection
-        if( message.type === MessageType.CONNECT ){
-            id = message.to;
-            // Create offer for webrtc signaling
-            rtcConnection.createOffer().then( ( v: RTCSessionDescriptionInit ) => {
-                // Set current offer as local description
-                rtcConnection.setLocalDescription( new RTCSessionDescription( v ) );
-                // Prepare signaling offer
-                let answer = {
-                    from: id,
-                    to: null,
-                    type: MessageType.MESSAGE,
-                    content: v
-                };
-                ws.send( JSON.stringify( answer ) );
-            });
-            // Send signaling message
-            let anwser = {
-                from: id,
-                to: null,
-
-            }
-        }
-        // Handle message
-        else if( message.type === MessageType.MESSAGE ){
-            // RTCSessionDescription
-            if( message.content.sdp ){
-                rtcConnection.setRemoteDescription( new RTCSessionDescription( message.content as RTCSessionDescriptionInit ) );
-            // RTCIceCandidate
-            } else if( message.content.type ){
-
-            }
+    // Send configuration message
+    let message = {
+        type: MessageType.CONFIGURATION,
+        content: {
+            width: canvas.clientWidth,
+            height: canvas.clientHeight
         }
     };
+    socket.send( JSON.stringify( message ) );
+}
 
-    let message: Message = {
-        from: '',
-        to: '',
-        type: MessageType.CONNECT,
-        content: 'client'
+function makePalette(){
+    function wrap( x: number ){
+        x = ((x + 256) & 0x1ff) - 256;
+        if( x < 0 )
+            x = -x;
+        return x;
     }
-    webSocket.send( JSON.stringify( message ) );
-};
+    for( let i = 0 ; i <= 1024 ; i++ )
+        palette.push([wrap(7*i),wrap(5*i),wrap(11*i)]);
+}
+
+function drawRow( result: WorkerResult ){
+    let row = context.createImageData( canvas.clientWidth, 1 );
+    let pixels = row.data;
+
+    let values = result.data;
+    for( let i = 0 ; i < row.width ; i++ ){
+        let r = i * 4;
+        let g = i * 4 + 1;
+        let b = i * 4 + 2;
+        let a = i * 4 + 3;
+
+        pixels[a] = 255;
+
+        if( values[ i ] < 0 )
+            pixels[ r ] = pixels[ g ] = pixels[ b ] = 0;
+        else{
+            let c = palette[ values[ i ] ];
+            pixels[ r ] = c[ 0 ];
+            pixels[ g ] = c[ 1 ];
+            pixels[ b ] = c[ 2 ];
+        }
+    }
+
+    context.putImageData( row, 0, result.row );
+}
 
 /*
-    RTC Connection
+    WebSocket
 */
-let connectionConfig: RTCPeerConnectionConfig = {
-    'iceServers': [
-        { 'urls': 'stun:stun.stunprotocol.org:3478' },
-        { 'urls': 'stun:stun.l.google.com:19302' }
-    ]
+let socket = new w3cwebsocket( 'ws://localhost:9030' );
+
+socket.onopen = () => {
+    console.log( 'WebSocket-Connection established' );
 }
 
-let rtcConnection = new RTCPeerConnection( connectionConfig );
+socket.onmessage = ( event: MessageEvent ) => {
+    let message = JSON.parse( event.data ) as Message;
+    let content = message.content as WorkerResult;
 
-// Events
-rtcConnection.onicecandidate = () => {
+    if( content.row === canvas.clientHeight - 1 ){
+        console.log( 'Generation: ' + generation );
+        let now = Date.now();
+        console.log( 'Time elapsed: ' + ( then - now ) / 1000 + ' s' );
+        then = now;
+        generation++;
+    }
 
-}
-rtcConnection.ondatachannel = () => {
-    
+    drawRow( content );
 }
