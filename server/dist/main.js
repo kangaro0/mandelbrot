@@ -90,7 +90,7 @@ function setupMandelbrot() {
         r_min: -2.5,
         i_max: 1.5,
         i_min: -1.5,
-        max_iter: 64,
+        max_iter: 4096,
         escape: 10
     };
     var aspect = canvas.width / canvas.height;

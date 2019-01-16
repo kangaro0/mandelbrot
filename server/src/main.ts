@@ -126,7 +126,7 @@ function setupMandelbrot(){
         i_max: 1.5,
         i_min: -1.5,
         // Maximum Iterationen
-        max_iter: 64,
+        max_iter: 4096,
         // Ueberpruefe ob Mandelbrot
         escape: 10
     };
